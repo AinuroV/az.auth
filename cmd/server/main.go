@@ -1,39 +1,29 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
+
+	"github.com/AinuroV/az.auth/internal/health"
 )
 
-type HealthResponse struct {
-	Status    string    `json:"status"`
-	Timestamp time.Time `json:"timestamp"`
-	Service   string    `json:"service"`
-	Version   string    `json:"version"`
-}
+const (
+	serviceName = "az.auth"
+	version     = "1.0.0"
+)
 
 func main() {
-	http.HandleFunc("/health", healtCheckHandler)
+	
+	healthHandler := health.NewHandler(serviceName, version)
+
+	
+	http.HandleFunc("/health", healthHandler.ServeHTTP)
 
 	fmt.Println("Сервер запущен на 80 порту")
+	fmt.Println("Проверьте здоровье: http://localhost:8080/health")
 
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
-		fmt.Println("Ошибка запуска сервера: ", err)
+		fmt.Println("Ошибка запуска сервера:", err)
 	}
-
-}
-
-func healtCheckHandler(w http.ResponseWriter, r *http.Request) {
-	response := HealthResponse{
-		Status:    "ok",
-		Timestamp: time.Now(),
-		Service:   "az.auth",
-		Version:   "1.0.0",
-	}
-	w.Header().Set("Content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
 }
