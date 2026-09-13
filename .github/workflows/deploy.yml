@@ -36,6 +36,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
+          context: .
           push: true
           tags: ghcr.io/${{ env.REPO_LOWER }}:latest
       
@@ -50,16 +51,18 @@ jobs:
             
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
-            docker pull ghcr.io/${{ github.repository }}:latest
+           
+            docker pull ghcr.io/${{ env.REPO_LOWER }}:latest
             
             docker stop az-auth-service || true
             docker rm az-auth-service || true
+            
             
             docker run -d \
               --name az-auth-service \
               --restart unless-stopped \
               -p 8080:8080 \
-              ghcr.io/${{ github.repository }}:latest
+              ghcr.io/${{ env.REPO_LOWER }}:latest
             
             sleep 5
             curl -f http://localhost:8080/health || exit 1
